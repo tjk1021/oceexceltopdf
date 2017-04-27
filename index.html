@@ -1,0 +1,60 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            width: 1230px;
+            margin: 20px auto;
+            font-family: Georgia;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        a {
+            color: blue;
+        }
+
+        iframe {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>OCE EXCEL TO PDF CERTIFICATES</h1>
+    <p onClick="myPDF.createPDF()">MAKE PDF</p>
+    <p onClick="myPDF.downloadPDF()">DL PDF</p>
+    <input type="file" id="files" name="files[]" multiple />
+    <output id="list"></output>
+
+    <script>
+        function handleFileSelect(evt) {
+            var files = evt.target.files; // FileList object
+
+            // files is a FileList of File objects. List some properties.
+            var output = [];
+            for (var i = 0, f; f = files[i]; i++) {
+              myPDF.parseExcel(f);
+                output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                    f.size, ' bytes, last modified: ',
+                    f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+                    '</li>');
+            }
+            document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+        }
+
+        document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    </script>
+
+    <script src="bundle.js"></script>
+    <script>
+        var myPDF = require('myPDF');
+    </script>
+
+    <!-- <script src="bundle.js"></script> -->
+</body>
+
+</html>
