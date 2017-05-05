@@ -2,59 +2,81 @@
 
 <head>
     <meta charset="utf-8">
-    <style>
-        body {
-            width: 1230px;
-            margin: 20px auto;
-            font-family: Georgia;
-        }
-
-        h1 {
-            margin: 0;
-        }
-
-        a {
-            color: blue;
-        }
-
-        iframe {
-            border: 1px solid black;
-        }
-    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="bundle.js"></script>
 </head>
 
 <body>
-    <h1>OCE EXCEL TO PDF CERTIFICATES</h1>
-    <p onClick="myPDF.createPDF()">MAKE PDF</p>
-    <p onClick="myPDF.downloadPDF()">DL PDF</p>
+    <h1 >OCE EXCEL TO PDF CERTIFICATES</h1>
+    <!-- <p onClick="myPDF.createPDF()" >MAKE PDF</p>
+    <p onClick="myPDF.downloadPDF()" >DL PDF</p> -->
+
     <input type="file" id="files" name="files[]" multiple />
     <output id="list"></output>
 
-    <script>
-        function handleFileSelect(evt) {
-            var files = evt.target.files; // FileList object
+<script>
+    var myPDF = require('myPDF');
+    </script>
 
-            // files is a FileList of File objects. List some properties.
-            var output = [];
-            for (var i = 0, f; f = files[i]; i++) {
-              myPDF.parseExcel(f);
-                output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
-                    f.size, ' bytes, last modified: ',
-                    f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
-                    '</li>');
-            }
-            document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+    <script>
+
+      function fixdata(data) {
+        var o = "", l = 0, w = 10240;
+        for(; l<data.byteLength/w; ++l) o+=String.fromCharCode.apply(null,new Uint8Array(data.slice(l*w,l*w+w)));
+        o+=String.fromCharCode.apply(null, new Uint8Array(data.slice(l*w)));
+        return o;
+      }
+
+      var rABS = true; // true: readAsBinaryString ; false: readAsArrayBuffer
+
+      function handleFileSelect(evt) {
+        var files = evt.target.files; // FileList object
+        // files is a FileList of File objects. List some properties.
+        for (var i = 0, f; f = files[i]; i++) {
+          output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                      f.size, ' bytes, last modified: ',
+                      f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+                      '</li>');
+        }
+        document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+      }
+
+      function handleFile(e) {
+        var files = e.target.files;
+        var output = [];
+          var i,f;
+          for (i = 0; i != files.length; ++i) {
+            f = files[i];
+            output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                        f.size, ' bytes, last modified: ',
+                        f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+                        '</li>');
+            var reader = new FileReader();
+            var name = f.name;
+            reader.onload = function(e) {
+              var data = e.target.result;
+
+              var workbook;
+              if(rABS) {
+                /* if binary string, read with type 'binary' */
+                // workbook = XLSX.read(data, {type: 'binary'});
+                workbook = myPDF.parseExcel('binary', data);
+
+              } else {
+                /* if array buffer, convert to base64 */
+                var arr = fixdata(data);
+                // workbook = XLSX.read(btoa(arr), {type: 'base64'});
+                workbook = myPDF.parseExcel('base64', data);
+              }
+              // console.log(JSON.stringify(workbook));
+            };
+            reader.readAsBinaryString(f);
+          }
+          document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
         }
 
-        document.getElementById('files').addEventListener('change', handleFileSelect, false);
-    </script>
+        files.addEventListener('change', handleFile, false);
 
-    <script src="bundle.js"></script>
-    <script>
-        var myPDF = require('myPDF');
-    </script>
-
-    <!-- <script src="bundle.js"></script> -->
+</script>
 </body>
-
 </html>

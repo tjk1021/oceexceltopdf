@@ -1,8 +1,7 @@
 var PDFDocument = require('pdfkit');
 var mysave = require('save-as');
 var myRequiredPDF = require('myPDF');
-var excelParser = require('excel-parser');
-var fs = require("fs");
+var xlsx = require('xlsx');
 
 'use strict';
 
@@ -20,79 +19,109 @@ myPDF = (function(module){
   // public vs. private methods
   // http://stackoverflow.com/questions/2620699/why-private-methods-in-the-object-oriented
 
-  module.parseExcel = function(file) {
-    alert(123);
-    excelParser.parse({
-      inFile: file,
-      worksheet: 1,
-      skipEmpty: true,
-      // searchFor: {
-      //   term: ['my serach term'],
-      //   type: 'loose'
-      // }
-    },function(err, records){
-      if(err) console.error(err);
-      console.log(records);
-    });
-  },
-
-  module.createPDF = function(pdfData) {
-    if (!pdfData) {
+  // PARSE AN EXCEL FILE ///////////////////////////////////////////////////////
+  module.parseExcel = function(type, data) {
+    var workbook;
+      if (type == 'binary') {
+        workbook = xlsx.read(data, {type: 'binary'});
+        if (!workbook.Sheets.Sheet1.A2.h) {
+            alert('Sorry, this spreadsheet is not in the correct format.');
+        } else {
+          myPDF.pdfData = {
+            title: workbook.Sheets.Sheet1.A2.h,
+            body: workbook.Sheets.Sheet1.B2.v,
+            credits: workbook.Sheets.Sheet1.C2.v,
+          };
+          console.log(myPDF.pdfData);
+          console.log(workbook);
+          myPDF.createPDF();
+          // return workbook;
+        }
+      } else {
+        if (!workbook.Sheets.Sheet1.A2.h) {
+            alert('Sorry, this spreadsheet is not in the correct format.');
+        } else {
+        workbook = xlsx.read(data, {type: 'binary'});
         myPDF.pdfData = {
-          title: 'YO!',
-          body: 'HEYYYYY',
+          title: workbook.Sheets.Sheet1.A2.h,
+          body: workbook.Sheets.Sheet1.B2.v,
+          credits: workbook.Sheets.Sheet1.C2.v
+        };
+        console.log(myPDF.pdfData);
+        myPDF.createPDF();
+        // return workbook;
+      }
+    }
+  };
+
+  // MAKE PARSED EXCEL JSON INTO A PDF /////////////////////////////////////////
+  module.createPDF = function() {
+    if (!myPDF.pdfData) {
+        myPDF.pdfData = {
+          title: 'TEST TITLE',
+          body: 'TESTING BODY',
           credits: 123
         };
-    } else {
-      myPDF.pdfData = pdfData;
     }
     var doc = new PDFDocument();
     var blobStream = require('blob-stream');
     var stream = doc.pipe(blobStream());
     myPDF.pdfBlob = null;
     myPDF.pdfBlobURL = null;
-    // draw some text
-    doc.fontSize(25)
-       .text(myPDF.pdfData.title, 100, 80);
-    // some vector graphics
-    doc.save()
-       .moveTo(100, 150)
-       .lineTo(100, 250)
-       .lineTo(200, 250)
-       .fill("#FF3300");
-    doc.circle(280, 200, 50)
-       .fill("#6600FF");
-    // an SVG path
-    doc.scale(0.6)
-       .translate(470, 130)
-       .path('M 250,75 L 323,301 131,161 369,161 177,301 z')
-       .fill('red', 'even-odd')
-       .restore();
-       // and some justified text wrapped into columns
-   doc.text(myPDF.pdfData.body, 100, 300)
-          .font('Times-Roman', 13)
-          .moveDown()
-          .text(myPDF.pdfData.credits, {
-            width: 412,
-            align: 'justify',
-            indent: 30,
-            columns: 2,
-            height: 300,
-            ellipsis: true
-          });
-    // end and display the document in the iframe to the right
+
+      doc.fontSize(20)
+      doc.text('The University of Massachusetts Medical School ', {
+        align: 'center'
+      });
+      doc.moveDown();
+      doc.fontSize(12)
+      doc.text('certifies that ', {
+        align: 'center'
+      });
+      doc.fontSize(20)
+      doc.moveDown();
+      doc.text(myPDF.pdfData.title, {
+        align: 'center'
+      });
+      doc.moveDown();
+      doc.fontSize(12)
+      doc.text('Has partipated in the enduring activity titled', {
+        align: 'center'
+      });
+      doc.fontSize(20)
+      doc.moveDown();
+      doc.text('TEST PROGRAM', {
+        align: 'center'
+      });
+         doc.moveDown();
+      doc.fontSize(12)
+      doc.text('On 05/05/17.', {
+        align: 'center'
+      });
+         doc.moveDown();
+      doc.fontSize(12)
+      doc.text('This activity was certified for '+ myPDF.pdfData.credits +' AMA PRA Category 1 Credit(s)™.', {
+        align: 'center'
+      });
+
+      // end and display the document in the iframe to the right
+
+
     doc.end();
+    var name = myPDF.pdfData.title;
     stream.on('finish', function() {
       myPDF.pdfBlobURL = stream.toBlobURL('application/pdf');
       myPDF.pdfBlob = stream.toBlob();
-      alert(JSON.stringify(myPDF));
+      // alert(JSON.stringify(myPDF));
+      myPDF.downloadPDF(name);
       return myPDF.pdfBlob;
     });
   };
 
-  module.downloadPDF = function(){
+  // DOWNLOAD THE PDF //////////////////////////////////////////////////////////
+  module.downloadPDF = function(name){
     if (myPDF.pdfBlob) {
-      mysave.saveAs(myPDF.pdfBlob, 'myPDF.pdf');
+      mysave.saveAs(myPDF.pdfBlob, name + 'CertificatePDF.pdf');
     } else {
       alert('NO PDF CREATED YET!');
     }
