@@ -1,0 +1,4 @@
+Browserify command for this project:
+  browserify -r ./main.js:myPDF > bundle.js
+
+This browserifys everything to bundle, but leaves the myPDF module from main.js open to the application. 

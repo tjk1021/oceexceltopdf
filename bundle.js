@@ -67182,7 +67182,6 @@ myPDF = (function(module){
     var stream = doc.pipe(blobStream());
     myPDF.pdfBlob = null;
     myPDF.pdfBlobURL = null;
-
       doc.fontSize(20)
       doc.text('The University of Massachusetts Medical School ', {
         align: 'center'
@@ -67214,9 +67213,13 @@ myPDF = (function(module){
       });
          doc.moveDown();
       doc.fontSize(12)
-      doc.text('This activity was certified for'+ myPDF.pdfData.credits +'AMA PRA Category 1 Credit(s)™.', {
+      doc.text('This activity was certified for '+ myPDF.pdfData.credits +' AMA PRA Category 1 Credit(s)™.', {
         align: 'center'
       });
+      // doc.image('images/test.jpeg', 0, 15, {
+      //   width: 300
+      // }).text('Proportional to width', 0, 0);
+
 
       // end and display the document in the iframe to the right
 
