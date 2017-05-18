@@ -1,4 +1,13 @@
-# First time setup run following commands:
+# First time setup:
+
+### Clone this repo:
+```
+git clone https://github.com/tjk1021/oceexceltopdf
+```
+### Run following commands:
+```
+cd oceexceltopdf
+```
 ```
 npm install
 ```
