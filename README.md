@@ -17,7 +17,7 @@ bower install
 ```
 browserify -r ./main.js:myPDF > bundle.js
 ```
-now you can open index.htnml file in browser and use.
+now you can open index.html file in browser and use.
 
 Note: each time you make changes to the js, run the browserify command:
 
